@@ -12,6 +12,7 @@ This spec drives the Playbook Engine built in Week 3.
 | 31–70 | Medium | Notify analyst, tag incident for review |
 | 71–100 | High | Auto-trigger containment (block IP / isolate host) |
 
+
 ## Action Types
 - `LOG_ONLY` — record the alert, take no automated action
 - `NOTIFY_ANALYST` — flag incident in dashboard, no auto-containment
