@@ -49,8 +49,8 @@ This project is licensed under the [MIT License](LICENSE).
 ---
 
 ## 👥 Contributors
-Team Lead: **Mahendra Marisa**  
-Members: **Hardik Jain**, **Kanishk Soni**, **Praveen CS**, **Sameer CS**
+Team Lead:  **Hardik Jain**  
+Members:**Kanishk Soni**, **Praveen CS**, **Mahendra Marisa**
 
 ---
 
