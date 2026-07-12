@@ -1,0 +1,9 @@
+name: malicious_ip_playbook
+trigger:
+  risk_score_min: 71
+  ioc_type: ip
+actions:
+  - type: BLOCK_IP
+    target: "{{ ioc_value }}"
+  - type: NOTIFY_ANALYST
+    message: "High-risk IP auto-blocked: {{ ioc_value }}"
