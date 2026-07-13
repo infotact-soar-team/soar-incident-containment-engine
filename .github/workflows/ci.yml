@@ -39,11 +39,27 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+<<<<<<< Updated upstream
+=======
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for Postgres and Redis to be ready..."
+          sleep 15
+>>>>>>> Stashed changes
 
       - name: Run tests
         working-directory: backend
