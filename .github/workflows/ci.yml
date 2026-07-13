@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, mahendra-dev]
+    branches: [main, mahendra-dev, hardik-dev, kanishk-dev, praveen-dev]
   pull_request:
     branches: [main]
 
@@ -10,24 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-
-      - name: Run tests
-        run: |
-          cd backend
-          pytest -v
     services:
       postgres:
         image: postgres:16
@@ -49,17 +31,18 @@ jobs:
           - 6379:6379
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.13"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
-          cd backend
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
 
       - name: Run tests
         env:
