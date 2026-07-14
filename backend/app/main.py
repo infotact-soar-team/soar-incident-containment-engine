@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from app.api.webhook import router as webhook_router
+
+app.include_router(webhook_router)
 
 app = FastAPI(
     title="SOAR Incident Containment Engine",
@@ -15,6 +18,20 @@ def health_check():
 @app.get("/")
 def root():
     return {"message": "SOAR Incident Containment Engine API is running"}
+
+
+import time
+from fastapi import Request
+from app.core.logging_config import logger
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    duration_ms = round((time.time() - start_time) * 1000, 2)
+    logger.info(f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms}ms)")
+    return response
+=======
 from app.core.redis_client import check_redis_connection
 
 
@@ -22,3 +39,4 @@ from app.core.redis_client import check_redis_connection
 def redis_health():
     is_up = check_redis_connection()
     return {"redis_connected": is_up}
+
