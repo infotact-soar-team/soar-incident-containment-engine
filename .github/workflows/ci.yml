@@ -39,6 +39,7 @@ jobs:
         with:
           python-version: "3.12"
 
+
       - name: Cache pip packages
         uses: actions/cache@v4
         with:
@@ -46,6 +47,7 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
+
 
       - name: Install dependencies
         working-directory: backend
@@ -64,4 +66,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/soar_db_test
           REDIS_URL: redis://localhost:6379/0
         run: |
+
           python -m pytest -v
+          cd backend
+          pytest -v
