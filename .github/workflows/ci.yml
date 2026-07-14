@@ -52,11 +52,30 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          # explicit fallback in case cache or requirements are incomplete
+          pip install python-multipart==0.0.6
 
       - name: Wait for services
         run: |
           echo "Waiting for Postgres and Redis to be ready..."
-          sleep 15
+          # Wait up to ~60s for Postgres
+          for i in {1..12}; do
+            if pg_isready -q -h localhost -p 5432; then
+              echo "Postgres ready"
+              break
+            fi
+            echo "Postgres not ready yet, sleeping..."
+            sleep 5
+          done
+          # Wait up to ~30s for Redis
+          for i in {1..6}; do
+            if redis-cli -h localhost ping | grep -q PONG; then
+              echo "Redis ready"
+              break
+            fi
+            echo "Redis not ready yet, sleeping..."
+            sleep 5
+          done
 
       - name: Run tests
         working-directory: backend
