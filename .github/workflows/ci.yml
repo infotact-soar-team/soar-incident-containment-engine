@@ -42,7 +42,7 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-
+          pip install pytest
       - name: Run tests
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/soar_db_test
