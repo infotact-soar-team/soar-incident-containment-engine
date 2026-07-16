@@ -1,1 +1,1 @@
-# Integrations package: external Threat Intelligence API clients
+# integrations package

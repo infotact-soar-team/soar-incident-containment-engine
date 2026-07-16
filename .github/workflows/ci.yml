@@ -1,9 +1,9 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [main]
   push:
+    branches: [main, mahendra-dev, hardik-dev, kanishk-dev, praveen-dev]
+  pull_request:
     branches: [main]
 
 jobs:
@@ -31,19 +31,30 @@ jobs:
           - 6379:6379
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.13"
+          python-version: "3.12"
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
+        working-directory: backend
         run: |
-          cd backend
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
       - name: Run tests
+        working-directory: backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/soar_db_test
           REDIS_URL: redis://localhost:6379/0
