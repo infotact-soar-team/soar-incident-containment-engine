@@ -1,7 +1,13 @@
 from fastapi import FastAPI
+<<<<<<< HEAD
 from app.api.webhook import router as webhook_router
 
 app.include_router(webhook_router)
+=======
+from app.core.exceptions import global_exception_handler
+
+app.add_exception_handler(Exception, global_exception_handler)
+>>>>>>> e93a1c7 (feat(core): add global exception handler with logging (Fixes #47))
 
 app = FastAPI(
     title="SOAR Incident Containment Engine",
