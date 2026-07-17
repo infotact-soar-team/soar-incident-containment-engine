@@ -60,13 +60,16 @@ jobs:
           echo "Waiting for Postgres and Redis to be ready..."
           sleep 15
 
-      - name: Run tests
-        working-directory: backend
+    - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/soar_db_test
           REDIS_URL: redis://localhost:6379/0
         run: |
-
-          python -m pytest -v
           cd backend
-          pytest -v
+          pytest -v --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/coverage.xml
