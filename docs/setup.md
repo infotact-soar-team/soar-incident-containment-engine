@@ -21,3 +21,19 @@ uvicorn app.main:app --reload
 ```
 
 Visit: `http://localhost:8000/health`
+
+## Secrets Management
+
+Never commit real API keys. All secrets live in a local `.env` file (already gitignored).
+
+1. Copy the example file:
+```bash
+   cp .env.example backend/.env
+```
+2. Fill in your real keys in `backend/.env`:
+
+3. Never run `git add .env` — confirm it's ignored:
+```bash
+   git check-ignore backend/.env
+```
+   This should print the path back, confirming it's ignored.
