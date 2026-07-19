@@ -12,5 +12,5 @@ class IOC(Base):
     alert_id = Column(UUID(as_uuid=True), ForeignKey("alerts.id"), nullable=False)
     ioc_type = Column(String, nullable=False)
     value = Column(String, nullable=False)
-    enrichment_id = Column(UUID(as_uuid=True), nullable=True)
+    enrichment_id = Column(UUID(as_uuid=True), ForeignKey("enrichment_results.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
