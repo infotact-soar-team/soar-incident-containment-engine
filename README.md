@@ -55,5 +55,5 @@ Members:**Kanishk Soni**, **Praveen CS**, **Mahendra Marisa**
 ---
 
 ## 🧠 Organization
-**Infotact Solutions – Cyber Security Batch 18**  
+**Infotact Solutions – Cyber Security Batch 18 Group 2**  
 GitHub Organization: [infotact‑soar‑team](https://github.com/infotact-soar-team)
