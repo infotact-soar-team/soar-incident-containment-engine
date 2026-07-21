@@ -18,3 +18,4 @@ pyyaml==6.0.2
 psycopg2-binary==2.9.10
 boto3==1.35.90
 moto[ec2]==5.0.21
+celery==5.4.0
