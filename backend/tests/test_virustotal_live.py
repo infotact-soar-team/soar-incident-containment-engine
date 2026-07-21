@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import patch, MagicMock
 from app.integrations.virustotal import check_hash, check_domain
 
-
 def test_check_hash_missing_api_key(monkeypatch):
     monkeypatch.setattr("app.integrations.virustotal.settings.VIRUSTOTAL_API_KEY", "")
     with pytest.raises(ValueError):

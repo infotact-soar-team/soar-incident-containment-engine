@@ -1,4 +1,3 @@
-
 """
 VirusTotal Integration — live implementation.
 Docs: https://developers.virustotal.com/reference/overview
