@@ -48,3 +48,40 @@ def test_check_domain_success(mock_get, monkeypatch):
 
     result = check_domain("malicious-domain-example.com")
     assert result["malicious"] == 15
+
+
+    from app.core.rate_limiter import check_rate_limit
+
+
+def check_hash(file_hash: str) -> dict:
+    check_rate_limit("virustotal", max_requests=4, window_seconds=60)
+    url = f"{VT_BASE_URL}/files/{file_hash}"
+    response = httpx.get(url, headers=_get_headers(), timeout=10)
+    response.raise_for_status()
+    data = response.json()["data"]
+    stats = data["attributes"]["last_analysis_stats"]
+
+    return {
+        "hash": file_hash,
+        "malicious": stats.get("malicious", 0),
+        "suspicious": stats.get("suspicious", 0),
+        "harmless": stats.get("harmless", 0),
+        "undetected": stats.get("undetected", 0),
+    }
+
+
+def check_domain(domain: str) -> dict:
+    check_rate_limit("virustotal", max_requests=4, window_seconds=60)
+    url = f"{VT_BASE_URL}/domains/{domain}"
+    response = httpx.get(url, headers=_get_headers(), timeout=10)
+    response.raise_for_status()
+    data = response.json()["data"]
+    stats = data["attributes"]["last_analysis_stats"]
+
+    return {
+        "domain": domain,
+        "malicious": stats.get("malicious", 0),
+        "suspicious": stats.get("suspicious", 0),
+        "harmless": stats.get("harmless", 0),
+        "undetected": stats.get("undetected", 0),
+    }
