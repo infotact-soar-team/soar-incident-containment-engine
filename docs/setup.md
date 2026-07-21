@@ -37,3 +37,17 @@ Never commit real API keys. All secrets live in a local `.env` file (already git
    git check-ignore backend/.env
 ```
    This should print the path back, confirming it's ignored.
+
+   ## Running the Celery Worker (for async enrichment tasks)
+
+Once Redis is running locally, start a worker in a separate terminal:
+
+```bash
+cd backend
+celery -A app.core.celery_app worker --loglevel=info
+```
+
+Windows users: add `--pool=solo` since Celery's default pool doesn't support Windows well:
+```bash
+celery -A app.core.celery_app worker --loglevel=info --pool=solo
+```
