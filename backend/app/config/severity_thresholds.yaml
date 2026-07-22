@@ -1,0 +1,13 @@
+bands:
+  - min: 71
+    max: 100
+    severity: high
+    action: AUTO_CONTAIN
+  - min: 31
+    max: 70
+    severity: medium
+    action: NOTIFY_ANALYST
+  - min: 0
+    max: 30
+    severity: low
+    action: LOG_ONLY
