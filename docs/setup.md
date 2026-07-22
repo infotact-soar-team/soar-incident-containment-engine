@@ -38,6 +38,15 @@ Never commit real API keys. All secrets live in a local `.env` file (already git
 ```
    This should print the path back, confirming it's ignored.
 
+   ## GeoLite2 Database Setup
+
+1. Sign up (free): https://www.maxmind.com/en/geolite2/signup
+2. Download GeoLite2-City.mmdb
+3. Place it at backend/data/GeoLite2-City.mmdb (create the data/ folder if needed)
+4. Confirm .env has:
+
+   GEOLITE2_DB_PATH=./data/GeoLite2-City.mmd
+
    ## Running the Celery Worker (for async enrichment tasks)
 
 Once Redis is running locally, start a worker in a separate terminal:
