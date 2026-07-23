@@ -225,3 +225,4 @@ __pycache__/
 *.pyc
 venv/
 .pytest_cache/data/GeoLite2-City.mmdb
+data/GeoLite2-City.mmdb
