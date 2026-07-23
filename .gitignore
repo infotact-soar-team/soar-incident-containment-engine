@@ -224,4 +224,4 @@ __marimo__/
 __pycache__/
 *.pyc
 venv/
-.pytest_cache/
+.pytest_cache/data/GeoLite2-City.mmdb
