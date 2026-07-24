@@ -5,6 +5,7 @@ from app.models.ioc import IOC
 from app.tasks.enrichment_task import enrich_ioc_task
 
 
+
 @patch("app.tasks.enrichment_task.check_ip")
 @patch("app.tasks.enrichment_task.lookup_ip_location")
 def test_pipeline_still_works_after_db_index_changes(mock_geoip, mock_abuseipdb):
