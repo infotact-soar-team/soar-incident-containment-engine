@@ -56,3 +56,44 @@ def check_hash(file_hash: str) -> dict:
 def check_domain(domain: str) -> dict:
     cache_key = f"virustotal:domain:{domain}"
     return get_or_fetch(cache_key, lambda: _fetch_domain(domain), ttl=3600)
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception_type((httpx.TimeoutException, httpx.ConnectError, httpx.HTTPStatusError)),
+)
+def _fetch_hash(file_hash: str) -> dict:
+    check_rate_limit("virustotal", max_requests=4, window_seconds=60)
+    url = f"{VT_BASE_URL}/files/{file_hash}"
+    response = httpx.get(url, headers=_get_headers(), timeout=10)
+    response.raise_for_status()
+    stats = response.json()["data"]["attributes"]["last_analysis_stats"]
+    return {
+        "hash": file_hash,
+        "malicious": stats.get("malicious", 0),
+        "suspicious": stats.get("suspicious", 0),
+        "harmless": stats.get("harmless", 0),
+        "undetected": stats.get("undetected", 0),
+    }
+
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception_type((httpx.TimeoutException, httpx.ConnectError, httpx.HTTPStatusError)),
+)
+def _fetch_domain(domain: str) -> dict:
+    check_rate_limit("virustotal", max_requests=4, window_seconds=60)
+    url = f"{VT_BASE_URL}/domains/{domain}"
+    response = httpx.get(url, headers=_get_headers(), timeout=10)
+    response.raise_for_status()
+    stats = response.json()["data"]["attributes"]["last_analysis_stats"]
+    return {
+        "domain": domain,
+        "malicious": stats.get("malicious", 0),
+        "suspicious": stats.get("suspicious", 0),
+        "harmless": stats.get("harmless", 0),
+        "undetected": stats.get("undetected", 0),
+    }
