@@ -4,6 +4,7 @@ Docs: https://developers.virustotal.com/reference/overview
 Auth: API key via header 'x-apikey'
 Rate limit (free tier): 4 requests/min, 500/day
 """
+
 import httpx
 from app.core.config import settings
 from app.core.rate_limiter import check_rate_limit

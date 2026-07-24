@@ -1,6 +1,8 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from app.integrations.virustotal import check_hash, check_domain
+from app.core.rate_limiter import check_rate_limit  # keep imports at top
+
 
 def test_check_hash_missing_api_key(monkeypatch):
     monkeypatch.setattr("app.integrations.virustotal.settings.VIRUSTOTAL_API_KEY", "")
@@ -17,7 +19,10 @@ def test_check_hash_success(mock_get, monkeypatch):
         "data": {
             "attributes": {
                 "last_analysis_stats": {
-                    "malicious": 58, "suspicious": 2, "harmless": 0, "undetected": 12
+                    "malicious": 58,
+                    "suspicious": 2,
+                    "harmless": 0,
+                    "undetected": 12,
                 }
             }
         }
@@ -38,7 +43,10 @@ def test_check_domain_success(mock_get, monkeypatch):
         "data": {
             "attributes": {
                 "last_analysis_stats": {
-                    "malicious": 15, "suspicious": 3, "harmless": 5, "undetected": 60
+                    "malicious": 15,
+                    "suspicious": 3,
+                    "harmless": 5,
+                    "undetected": 60,
                 }
             }
         }
@@ -48,40 +56,3 @@ def test_check_domain_success(mock_get, monkeypatch):
 
     result = check_domain("malicious-domain-example.com")
     assert result["malicious"] == 15
-
-
-    from app.core.rate_limiter import check_rate_limit
-
-
-def check_hash(file_hash: str) -> dict:
-    check_rate_limit("virustotal", max_requests=4, window_seconds=60)
-    url = f"{VT_BASE_URL}/files/{file_hash}"
-    response = httpx.get(url, headers=_get_headers(), timeout=10)
-    response.raise_for_status()
-    data = response.json()["data"]
-    stats = data["attributes"]["last_analysis_stats"]
-
-    return {
-        "hash": file_hash,
-        "malicious": stats.get("malicious", 0),
-        "suspicious": stats.get("suspicious", 0),
-        "harmless": stats.get("harmless", 0),
-        "undetected": stats.get("undetected", 0),
-    }
-
-
-def check_domain(domain: str) -> dict:
-    check_rate_limit("virustotal", max_requests=4, window_seconds=60)
-    url = f"{VT_BASE_URL}/domains/{domain}"
-    response = httpx.get(url, headers=_get_headers(), timeout=10)
-    response.raise_for_status()
-    data = response.json()["data"]
-    stats = data["attributes"]["last_analysis_stats"]
-
-    return {
-        "domain": domain,
-        "malicious": stats.get("malicious", 0),
-        "suspicious": stats.get("suspicious", 0),
-        "harmless": stats.get("harmless", 0),
-        "undetected": stats.get("undetected", 0),
-    }

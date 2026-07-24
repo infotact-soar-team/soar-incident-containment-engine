@@ -1,32 +1,25 @@
-"""
-Redis-backed sliding-window rate limiter shared across all TI integrations.
-Prevents exceeding free-tier API quotas (e.g. VirusTotal's 4 req/min).
-"""
+# backend/app/core/rate_limiter.py
+
 import time
-from app.core.redis_client import redis_client
+from collections import defaultdict
 
+# Simple in-memory rate limiter stub
+_last_called = defaultdict(list)
 
-class RateLimitExceeded(Exception):
-    pass
-
-
-def check_rate_limit(key: str, max_requests: int, window_seconds: int) -> None:
+def check_rate_limit(service_name: str, max_requests: int, window_seconds: int) -> bool:
     """
-    Raises RateLimitExceeded if more than max_requests have been made
-    under this key within the last window_seconds.
-    Call this before making any external TI API call.
+    Temporary stub for rate limiting.
+    Allows up to `max_requests` calls per `window_seconds` window.
     """
-    redis_key = f"ratelimit:{key}"
     now = time.time()
-    window_start = now - window_seconds
+    calls = _last_called[service_name]
 
-    redis_client.zremrangebyscore(redis_key, 0, window_start)
-    current_count = redis_client.zcard(redis_key)
+    # Remove old timestamps
+    _last_called[service_name] = [t for t in calls if now - t < window_seconds]
 
-    if current_count >= max_requests:
-        raise RateLimitExceeded(
-            f"Rate limit exceeded for '{key}': {current_count}/{max_requests} in {window_seconds}s"
-        )
+    if len(_last_called[service_name]) >= max_requests:
+        # In real implementation, raise or delay
+        return False
 
-    redis_client.zadd(redis_key, {str(now): now})
-    redis_client.expire(redis_key, window_seconds)
+    _last_called[service_name].append(now)
+    return True
