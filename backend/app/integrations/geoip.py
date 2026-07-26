@@ -82,8 +82,4 @@ def _fetch_location(ip: str) -> dict:
             "note": "IP not found in GeoLite2 database",
         }
     except FileNotFoundError:
-<<<<<<< HEAD:backend/app/integrations/geoiq.py
         raise FileNotFoundError(f"GeoLite2 database not found at {settings.GEOLITE2_DB_PATH}.")
-=======
-        raise FileNotFoundError(f"GeoLite2 database not found at {settings.GEOLITE2_DB_PATH}.")
->>>>>>> origin/main:backend/app/integrations/geoip.py
