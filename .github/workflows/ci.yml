@@ -1,9 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [main, mahendra-dev, hardik-dev, kanishk-dev, praveen-dev]
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
 
 jobs:
@@ -31,63 +31,27 @@ jobs:
           - 6379:6379
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-
-      - name: Cache pip packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          python-version: "3.13"
 
       - name: Install dependencies
-        working-directory: backend
         run: |
-          python -m pip install --upgrade pip
+          cd backend
           pip install -r requirements.txt
- fallback install for python-multipart to avoid pip dependency-resolution conflicts
 
-      - name: Wait for services
-        run: |
-          echo "Waiting for Postgres and Redis to be ready..."
-          # Wait up to ~60s for Postgres (use postgres user explicitly)
-          for i in {1..12}; do
-            if pg_isready -q -h localhost -p 5432 -U postgres; then
-              echo "Postgres ready"
-              break
-            fi
-            echo "Postgres not ready yet, sleeping..."
-            sleep 5
-          done
-          # Wait up to ~30s for Redis
-          for i in {1..6}; do
-            if redis-cli -h localhost ping | grep -q PONG; then
-              echo "Redis ready"
-              break
-            fi
-            echo "Redis not ready yet, sleeping..."
-            sleep 5
-          done
-
-    - name: Run tests with coverage
-
-          pip install pytest
-      - name: Run tests
-        working-directory: backend
-
+      - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/soar_db_test
           REDIS_URL: redis://localhost:6379/0
+          ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY_TEST }}
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY_TEST }}
+          GEOLITE2_DB_PATH: ./data/GeoLite2-City.mmdb
+          RUN_LIVE_TI_TESTS: "0"
         run: |
-
-
           cd backend
           pytest -v --cov=app --cov-report=term-missing --cov-report=xml
 
@@ -96,9 +60,3 @@ jobs:
         with:
           name: coverage-report
           path: backend/coverage.xml
-
-          python -m pytest -v
-
-          cd backend
-          pytest -v
-
