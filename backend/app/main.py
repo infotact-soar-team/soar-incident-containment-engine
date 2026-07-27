@@ -1,5 +1,8 @@
 from fastapi import FastAPI, Request
 import time
+from app.api.health import router as health_router
+
+app.include_router(health_router)
 
 from app.api.webhook import router as webhook_router
 from app.core.exceptions import global_exception_handler
