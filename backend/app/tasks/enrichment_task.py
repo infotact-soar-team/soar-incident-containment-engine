@@ -42,6 +42,11 @@ def enrich_ioc_task(ioc_id: str, ioc_type: str, ioc_value: str):
             ioc.recommended_action = evaluation["recommended_action"]
             db.commit()
 
+            try:
+                transition_alert(str(ioc.alert_id), "enriched")
+            except Exception as e:
+                logger.info(f"Lifecycle transition skipped: {e}")
+
         logger.info(f"Enriched {ioc_type}={ioc_value}: risk_score={risk_score}, severity={evaluation['severity']}")
 
         return {
