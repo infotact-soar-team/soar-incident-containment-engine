@@ -1,18 +1,14 @@
 """
-Internal service exposing risk score lookups for a given IoC,
-so the playbook engine (Week 3) doesn't need to know about
-Celery tasks or which TI integration was used — it just asks
-"what's the current risk score for this IoC?"
+Internal service exposing risk score lookups for a given IoC, now cached
+so repeated lookups within a single playbook run (or re-run) don't
+re-query the DB unnecessarily.
 """
 from app.database.session import SessionLocal
 from app.models.ioc import IOC
+from app.services.cache import get_or_fetch
 
 
-def get_ioc_risk(ioc_id: str) -> dict:
-    """
-    Returns the persisted risk_score/severity/recommended_action
-    for a given IoC (populated earlier by enrich_ioc_task).
-    """
+def _fetch_ioc_risk(ioc_id: str) -> dict:
     db = SessionLocal()
     try:
         ioc = db.query(IOC).filter(IOC.id == ioc_id).first()
@@ -32,11 +28,21 @@ def get_ioc_risk(ioc_id: str) -> dict:
         db.close()
 
 
+def get_ioc_risk(ioc_id: str, use_cache: bool = True) -> dict:
+    if not use_cache:
+        return _fetch_ioc_risk(ioc_id)
+
+    cache_key = f"risk_lookup:ioc:{ioc_id}"
+    return get_or_fetch(cache_key, lambda: _fetch_ioc_risk(ioc_id), ttl=300)
+
+
+def invalidate_ioc_risk_cache(ioc_id: str) -> None:
+    """Call this whenever an IoC's risk_score is updated, so stale cache isn't served."""
+    from app.core.redis_client import redis_client
+    redis_client.delete(f"risk_lookup:ioc:{ioc_id}")
+
+
 def get_risk_for_alert(alert_id: str) -> list:
-    """
-    Returns risk data for every IoC belonging to a given alert —
-    useful when a playbook needs to evaluate the whole alert at once.
-    """
     db = SessionLocal()
     try:
         iocs = db.query(IOC).filter(IOC.alert_id == alert_id).all()
