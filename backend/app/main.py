@@ -8,6 +8,14 @@ app.include_router(health_router)
 
 from app.api.webhook import router as webhook_router
 from app.core.exceptions import global_exception_handler
+
+from app.api.incidents import router as incidents_router
+
+app.include_router(incidents_router)
+app.add_exception_handler(Exception, global_exception_handler)
+
+import time
+from fastapi import Request
 from app.core.logging_config import logger
 from app.core.redis_client import check_redis_connection
 
