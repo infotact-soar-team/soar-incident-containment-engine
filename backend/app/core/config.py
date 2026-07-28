@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     # Path to GeoLite2 database file
     GEOLITE2_DB_PATH: str = "./data/GeoLite2-City.mmdb"
 
+    # JWT Configuration
+    JWT_SECRET_KEY: str = "change-this-in-production-please"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60
+
 
 # Instantiate settings object
 settings = Settings()
