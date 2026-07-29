@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SOAR Incident Dashboard</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #0d1117; color: #e6edf3; }
+  header { background: #161b22; padding: 16px 24px; border-bottom: 1px solid #30363d; }
+  h1 { margin: 0; font-size: 20px; }
+  #login-box, #dashboard-box { padding: 24px; max-width: 900px; margin: 0 auto; }
+  input, select, button { padding: 8px; margin: 4px 0; border-radius: 4px; border: 1px solid #30363d; background: #0d1117; color: #e6edf3; }
+  button { cursor: pointer; background: #238636; border: none; color: white; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid #30363d; }
+  .high { color: #f85149; } .medium { color: #d29922; } .low { color: #3fb950; }
+  #error { color: #f85149; margin-top: 8px; }
+  #timeline { margin-top: 16px; }
+  .action-row { padding: 8px; border-left: 2px solid #238636; margin-bottom: 6px; padding-left: 12px; }
+</style>
+</head>
+<body>
+<header><h1>SOAR Incident Dashboard</h1></header>
+
+<div id="login-box">
+  <h3>Login</h3>
+  <input id="username" placeholder="username (admin / analyst / viewer)"><br>
+  <input id="password" type="password" placeholder="password"><br>
+  <button onclick="login()">Login</button>
+  <div id="error"></div>
+</div>
+
+<div id="dashboard-box" style="display:none;">
+  <p>Logged in as <b id="whoami"></b> (<span id="role"></span>) — <button onclick="logout()">Logout</button></p>
+  <button onclick="loadIncidents()">Refresh Incidents</button>
+  <table id="incidents-table">
+    <thead><tr><th>Status</th><th>Playbook</th><th>Created</th><th>Actions</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div id="timeline"></div>
+</div>
+
+<script>
+let token = null;
+let role = null;
+
+async function login() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const res = await fetch('/auth/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username, password})
+  });
+  if (!res.ok) {
+    document.getElementById('error').innerText = 'Login failed';
+    return;
+  }
+  const data = await res.json();
+  token = data.access_token;
+  role = data.role;
+  document.getElementById('login-box').style.display = 'none';
+  document.getElementById('dashboard-box').style.display = 'block';
+  document.getElementById('whoami').innerText = username;
+  document.getElementById('role').innerText = role;
+  loadIncidents();
+}
+
+function logout() {
+  token = null;
+  document.getElementById('login-box').style.display = 'block';
+  document.getElementById('dashboard-box').style.display = 'none';
+}
+
+async function loadIncidents() {
+  const res = await fetch('/incidents', { headers: { 'Authorization': 'Bearer ' + token } });
+  const data = await res.json();
+  const tbody = document.querySelector('#incidents-table tbody');
+  tbody.innerHTML = '';
+  data.incidents.forEach(inc => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${inc.status}</td><td>${inc.playbook_name || '-'}</td><td>${new Date(inc.created_at).toLocaleString()}</td>
+      <td><button onclick="loadTimeline('${inc.id}')">View Timeline</button>
+      ${role !== 'viewer' ? `<button onclick="rerun('${inc.id}')">Re-run</button>` : ''}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function loadTimeline(incidentId) {
+  const res = await fetch(`/incidents/${incidentId}/actions`, { headers: { 'Authorization': 'Bearer ' + token } });
+  const actions = await res.json();
+  const div = document.getElementById('timeline');
+  div.innerHTML = '<h3>Timeline</h3>' + actions.map(a =>
+    `<div class="action-row">${new Date(a.executed_at).toLocaleTimeString()} — ${a.action_type} on ${a.target || '-'} — ${a.success ? '✅' : '❌'}</div>`
+  ).join('');
+}
+
+async function rerun(incidentId) {
+  const res = await fetch(`/incidents/${incidentId}/rerun`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+  if (res.ok) {
+    alert('Playbook re-run triggered');
+    loadTimeline(incidentId);
+  } else {
+    alert('Failed: ' + res.status);
+  }
+}
+</script>
+</body>
+</html>
