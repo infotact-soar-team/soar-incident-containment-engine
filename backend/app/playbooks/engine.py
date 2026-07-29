@@ -35,7 +35,11 @@ class PlaybookEngine:
         for step in self.playbook.actions:
             action_fn = ACTION_DISPATCH.get(step.type)
             if not action_fn:
-                results.append({"action": step.type, "success": False, "error": "Unknown action type"})
+                results.append({
+                    "action": step.type,
+                    "success": False,
+                    "error": "Unknown action type"
+                })
                 continue
 
             target = ioc_value
