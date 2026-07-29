@@ -18,7 +18,14 @@ def test_webhook_dispatches_enrichment_task_per_ioc(mock_delay):
     assert mock_delay.call_count == 2  # one for the ip, one for the domain
 
 
-def test_enrichment_task_runs_synchronously():
+@patch("app.tasks.enrichment_task.check_ip")
+@patch("app.tasks.enrichment_task.lookup_ip_location")
+def test_enrichment_task_runs_synchronously(mock_geoip, mock_abuseipdb):
     from app.tasks.enrichment_task import enrich_ioc_task
+
+    mock_abuseipdb.return_value = {"abuse_confidence_score": 10}
+    mock_geoip.return_value = {"country": "US"}
+
     result = enrich_ioc_task.run("fake-id", "ip", "1.2.3.4")
-    assert result["status"] == "dispatched"
+    assert result["status"] == "enriched"
+    assert result["risk_score"] == 10
