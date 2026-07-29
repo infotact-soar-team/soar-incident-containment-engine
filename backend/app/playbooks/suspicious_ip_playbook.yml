@@ -1,0 +1,7 @@
+name: suspicious_ip_playbook
+trigger:
+  risk_score_min: 50
+  ioc_type: ip
+actions:
+  - type: NOTIFY_ANALYST
+    message: "Suspicious IP observed: {{ ioc_value }}"

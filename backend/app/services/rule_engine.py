@@ -22,3 +22,10 @@ def evaluate_alert(risk_score: int, ioc_value: str, ioc_type: str) -> dict:
         "severity": severity,
         "recommended_action": action,
     }
+# Mapping of rule-engine conditions to playbook names
+PLAYBOOK_SELECTION = {
+    ("ip", "malicious"): "malicious_ip_playbook",
+    ("ip", "suspicious"): "suspicious_ip_playbook",
+    ("domain", "malicious"): "malicious_domain_playbook",
+    ("hash", "malware"): "malware_hash_playbook",
+}
