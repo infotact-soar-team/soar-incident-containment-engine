@@ -52,3 +52,7 @@ async def log_requests(request: Request, call_next):
     duration_ms = round((time.time() - start_time) * 1000, 2)
     logger.info(f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms}ms)")
     return response
+
+from app.api.iocs import router as iocs_router
+
+app.include_router(iocs_router)
