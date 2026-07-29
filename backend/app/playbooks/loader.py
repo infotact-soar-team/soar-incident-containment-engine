@@ -14,6 +14,7 @@ def load_playbook(path: str) -> PlaybookDefinition:
         candidates = [
             (base_dir / candidate).resolve(),
             (repo_root / candidate).resolve(),
+            (repo_root.parent / candidate).resolve(),
         ]
         existing = next((c for c in candidates if c.exists()), None)
         if existing is None:

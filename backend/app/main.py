@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
+from pathlib import Path
 import time
 from app.core.logging_config import logger
 from app.core.redis_client import check_redis_connection
@@ -43,6 +45,11 @@ def redis_health():
 @app.get("/")
 def root():
     return {"message": "SOAR Incident Containment Engine API is running"}
+
+
+@app.get("/dashboard", include_in_schema=False)
+def dashboard():
+    return FileResponse(Path(__file__).parent / "static" / "dashboard.html")
 
 # ✅ Middleware for request logging
 @app.middleware("http")

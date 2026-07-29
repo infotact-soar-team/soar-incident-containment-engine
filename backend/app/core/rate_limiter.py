@@ -3,28 +3,31 @@
 import time
 from collections import defaultdict
 
-# Exception used by callers/tests when rate limits are exceeded
 class RateLimitExceeded(Exception):
     """Raised when a rate limit is exceeded."""
     pass
 
-# Simple in-memory rate limiter stub
+# Global in-memory call history tracker
 _last_called = defaultdict(list)
+
+def reset_rate_limits():
+    """Utility to clear cached timestamps between test runs."""
+    _last_called.clear()
 
 def check_rate_limit(service_name: str, max_requests: int, window_seconds: int) -> bool:
     """
-    Temporary stub for rate limiting.
-    Allows up to `max_requests` calls per `window_seconds` window.
+    Checks rate limits for a given service key.
+    Raises RateLimitExceeded if max_requests is met or exceeded within window_seconds.
     """
     now = time.time()
     calls = _last_called[service_name]
 
-    # Remove old timestamps
+    # Remove timestamps older than the sliding window
     _last_called[service_name] = [t for t in calls if now - t < window_seconds]
 
+    # If limit reached, raise exception
     if len(_last_called[service_name]) >= max_requests:
-        # In real implementation, raise or delay. Keep returning False for backward compatibility.
-        return False
+        raise RateLimitExceeded(f"Rate limit of {max_requests} requests per {window_seconds}s exceeded for '{service_name}'")
 
     _last_called[service_name].append(now)
     return True
