@@ -7,21 +7,28 @@ from app.integrations.geoip import lookup_ip_location
 from app.integrations.virustotal import check_hash, check_domain
 from app.services.risk_aggregator import aggregate_risk
 from app.services.rule_engine import evaluate_alert
+from app.services.alert_lifecycle import transition_alert  # ✅ ensure lifecycle transitions are imported
+
+# ✅ Mapping between playbook names and their file paths
+PLAYBOOK_FILE_MAP = {
+    "malicious_ip_playbook": "app/playbooks/malicious_ip_playbook.yml",
+    "suspicious_ip_playbook": "app/playbooks/suspicious_ip_playbook.yml",
+    "malicious_domain_playbook": "app/playbooks/malicious_domain_playbook.yml",
+    "malware_hash_playbook": "app/playbooks/malware_hash_playbook.yml",
+}
 
 
 @celery_app.task(name="enrich_ioc_task")
 def enrich_ioc_task(ioc_id: str, ioc_type: str, ioc_value: str):
     """
-    Full enrichment pipeline for a single IoC. Now persists the result
-    (risk_score, severity, recommended_action) back onto the IOC row,
-    fixing the earlier mismatch where results were only logged/returned
-    but never actually saved.
+    Full enrichment pipeline for a single IoC.
+    Persists risk_score, severity, and recommended_action back to the IOC row.
     """
     db = SessionLocal()
     try:
         if ioc_type == "ip":
             abuseipdb_result = check_ip(ioc_value)
-            lookup_ip_location(ioc_value)  # fetched for future geo-based rules
+            lookup_ip_location(ioc_value)  # fetched for geo-based rules
             risk_score = aggregate_risk("ip", abuseipdb_result=abuseipdb_result)
         elif ioc_type == "hash":
             vt_result = check_hash(ioc_value)
