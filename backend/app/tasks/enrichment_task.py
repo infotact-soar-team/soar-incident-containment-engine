@@ -12,8 +12,9 @@ from app.services.alert_lifecycle import transition_alert  # ✅ ensure lifecycl
 # ✅ Mapping between playbook names and their file paths
 PLAYBOOK_FILE_MAP = {
     "malicious_ip_playbook": "app/playbooks/malicious_ip_playbook.yml",
+    "suspicious_ip_playbook": "app/playbooks/suspicious_ip_playbook.yml",
     "malicious_domain_playbook": "app/playbooks/malicious_domain_playbook.yml",
-    "malicious_hash_playbook": "app/playbooks/malicious_hash_playbook.yml",
+    "malware_hash_playbook": "app/playbooks/malware_hash_playbook.yml",
 }
 
 
