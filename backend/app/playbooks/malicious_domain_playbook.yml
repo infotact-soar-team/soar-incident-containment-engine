@@ -1,0 +1,7 @@
+name: malicious_domain_playbook
+trigger:
+  risk_score_min: 70
+  ioc_type: domain
+actions:
+  - type: NOTIFY_ANALYST
+    message: "Malicious domain detected: {{ ioc_value }}"
