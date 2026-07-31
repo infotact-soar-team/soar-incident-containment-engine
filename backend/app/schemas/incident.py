@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import Optional, List
+from uuid import UUID
 from pydantic import BaseModel
 
 
 class ActionOut(BaseModel):
-    id: str
+    id: UUID
     action_type: str
     target: Optional[str]
     success: bool
@@ -16,9 +17,9 @@ class ActionOut(BaseModel):
 
 
 class IncidentOut(BaseModel):
-    id: str
-    alert_id: str
-    ioc_id: Optional[str]
+    id: UUID
+    alert_id: UUID
+    ioc_id: Optional[UUID]
     playbook_name: Optional[str]
     status: str
     created_at: datetime

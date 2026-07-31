@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 from pydantic import BaseModel
 
 
 class IOCOut(BaseModel):
-    id: str
-    alert_id: str
+    id: UUID
+    alert_id: UUID
     ioc_type: str
     value: str
     risk_score: Optional[int]

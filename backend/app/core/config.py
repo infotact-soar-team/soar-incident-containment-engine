@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Load environment variables from .env file
@@ -12,7 +13,9 @@ class Settings(BaseSettings):
     # Core app settings
     APP_NAME: str = "SOAR Incident Containment Engine"
     ENV: str = "development"
-    DEBUG: bool = True
+    # Avoid consuming generic host-level DEBUG values (for example, "release").
+    # Set SOAR_DEBUG=true/false when overriding this application setting.
+    DEBUG: bool = Field(default=True, validation_alias=AliasChoices("SOAR_DEBUG"))
 
     # Database and cache
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/soar_db"

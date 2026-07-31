@@ -1,4 +1,5 @@
 from app.core.celery_app import celery_app
+from uuid import UUID
 from app.core.logging_config import logger
 from app.database.session import SessionLocal
 from app.models.ioc import IOC
@@ -7,6 +8,9 @@ from app.integrations.geoip import lookup_ip_location
 from app.integrations.virustotal import check_hash, check_domain
 from app.services.risk_aggregator import aggregate_risk
 from app.services.rule_engine import evaluate_alert
+from app.services.incident_service import create_incident, log_actions
+from app.playbooks.loader import load_playbook
+from app.playbooks.engine import PlaybookEngine
 from app.services.alert_lifecycle import transition_alert  # ✅ ensure lifecycle transitions are imported
 
 # ✅ Mapping between playbook names and their file paths
@@ -15,6 +19,12 @@ PLAYBOOK_FILE_MAP = {
     "suspicious_ip_playbook": "app/playbooks/suspicious_ip_playbook.yml",
     "malicious_domain_playbook": "app/playbooks/malicious_domain_playbook.yml",
     "malware_hash_playbook": "app/playbooks/malware_hash_playbook.yml",
+}
+
+AUTO_CONTAIN_PLAYBOOKS = {
+    "ip": "malicious_ip_playbook",
+    "domain": "malicious_domain_playbook",
+    "hash": "malware_hash_playbook",
 }
 
 
@@ -42,7 +52,15 @@ def enrich_ioc_task(ioc_id: str, ioc_type: str, ioc_value: str):
 
         evaluation = evaluate_alert(risk_score, ioc_value, ioc_type)
 
-        ioc = db.query(IOC).filter(IOC.id == ioc_id).first()
+        try:
+            persisted_ioc_id = UUID(ioc_id)
+        except (TypeError, ValueError, AttributeError):
+            # Enrichment can also be invoked for an indicator that has not yet
+            # been persisted (for example, a dry run or direct task call).
+            ioc = None
+        else:
+            ioc = db.query(IOC).filter(IOC.id == persisted_ioc_id).first()
+        incident_id = None
         if ioc:
             ioc.risk_score = risk_score
             ioc.severity = evaluation["severity"]
@@ -54,6 +72,16 @@ def enrich_ioc_task(ioc_id: str, ioc_type: str, ioc_value: str):
             except Exception as e:
                 logger.info(f"Lifecycle transition skipped: {e}")
 
+            if evaluation["recommended_action"] == "AUTO_CONTAIN":
+                playbook_name = AUTO_CONTAIN_PLAYBOOKS.get(ioc_type)
+                if playbook_name:
+                    incident_id = create_incident(
+                        str(ioc.alert_id), str(ioc.id), playbook_name
+                    )
+                    playbook = load_playbook(PLAYBOOK_FILE_MAP[playbook_name])
+                    action_results = PlaybookEngine(playbook).execute(ioc_value)
+                    log_actions(incident_id, action_results)
+
         logger.info(f"Enriched {ioc_type}={ioc_value}: risk_score={risk_score}, severity={evaluation['severity']}")
 
         return {
@@ -62,6 +90,7 @@ def enrich_ioc_task(ioc_id: str, ioc_type: str, ioc_value: str):
             "risk_score": risk_score,
             "severity": evaluation["severity"],
             "recommended_action": evaluation["recommended_action"],
+            "incident_id": incident_id,
         }
 
     except Exception as e:
